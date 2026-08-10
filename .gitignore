@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+.gcloud/
+*service-account*.json
+*credentials*.json
+
+# Logs and temporary files
+*.log
+tmp/
+.cache/
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

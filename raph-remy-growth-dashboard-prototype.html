@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Raph &amp; Remy: Ecommerce Performance Dashboard Prototype</title>
+  <meta name="description" content="High-fidelity ecommerce growth dashboard prototype for Raph & Remy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #11110f;
+      --ink-2: #3f3d38;
+      --muted: #716e67;
+      --faint: #99958c;
+      --line: #dedbd4;
+      --line-2: #ece9e3;
+      --paper: #ffffff;
+      --canvas: #f3f2ee;
+      --nav: #0d0d0c;
+      --nav-2: #242320;
+      --primary: #ff4f29;
+      --primary-2: #ff6948;
+      --primary-soft: #fff0ea;
+      --green: #28775c;
+      --green-soft: #e9f5ef;
+      --amber: #bd7619;
+      --amber-soft: #fff3de;
+      --red: #c74735;
+      --red-soft: #fff0ec;
+      --blue: #347286;
+      --blue-soft: #dff1f5;
+      --lavender: #d9b8e9;
+      --shadow: 0 1px 2px rgba(17,17,15,.05), 0 7px 18px rgba(17,17,15,.045);
+      --radius: 7px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    button, select, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+
+    .app { min-height: 100vh; display: grid; grid-template-columns: 264px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+      color: #d0d5dd;
+      padding: 22px 14px 16px;
+      border-right: 1px solid rgba(255,255,255,.04);
+      z-index: 30;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 8px 23px; }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+      background: linear-gradient(135deg, #7c6cff, #4f46e5); color: white; font-weight: 800;
+      letter-spacing: -.04em; box-shadow: 0 8px 24px rgba(79,70,229,.35);
+    }
+    .brand-copy strong { display: block; color: white; font-size: 14px; letter-spacing: -.01em; }
+    .brand-copy span { display: block; color: #98a2b3; font-size: 11px; margin-top: 2px; }
+    .nav-label { color: #667085; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; padding: 0 11px; margin: 10px 0 7px; }
+    .nav { display: grid; gap: 4px; }
+    .nav button {
+      width: 100%; border: 0; background: transparent; color: #b8c0ce; cursor: pointer;
+      display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px;
+      text-align: left; transition: .18s ease; white-space: nowrap; font-size: 13px;
+    }
+    .nav button:hover { background: rgba(255,255,255,.055); color: white; }
+    .nav button.active { background: rgba(124,108,255,.17); color: #fff; box-shadow: inset 0 0 0 1px rgba(124,108,255,.14); }
+    .nav-icon { width: 20px; text-align: center; font-size: 14px; color: #98a2b3; }
+    .nav button.active .nav-icon { color: #9b8cff; }
+    .nav-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: #2d254f; color: #c8c2ff; font-size: 10px; font-weight: 800; }
+    .side-footer { margin-top: auto; border-top: 1px solid rgba(255,255,255,.08); padding: 15px 8px 2px; }
+    .client-profile { display: flex; gap: 10px; align-items: center; }
+    .client-avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #243146; color: white; font-weight: 800; font-size: 11px; }
+    .client-profile strong { color: #eaecf0; display: block; font-size: 12px; }
+    .client-profile span { display: block; color: #667085; font-size: 10px; }
+
+    .main { min-width: 0; }
+    .topbar {
+      height: 68px; position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; padding: 0 30px; background: rgba(255,255,255,.94); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+    }
+    .crumbs { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; min-width: 0; }
+    .crumbs b { color: var(--ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .control, .btn {
+      height: 36px; border: 1px solid var(--line); background: white; border-radius: 9px; padding: 0 11px;
+      display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 12px; font-weight: 650;
+    }
+    select.control { outline: 0; cursor: pointer; padding-right: 30px; }
+    .btn { cursor: pointer; transition: .16s ease; }
+    .btn:hover { border-color: #cfd4dc; box-shadow: 0 2px 8px rgba(16,24,40,.06); }
+    .btn.primary { color: white; border-color: var(--primary); background: var(--primary); }
+    .btn.primary:hover { background: #4338ca; }
+    .btn.ghost { background: transparent; }
+
+    .content { padding: 26px 30px 54px; max-width: 1560px; margin: 0 auto; }
+    .demo-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; margin-bottom: 20px;
+      background: #f7f5ff; border: 1px solid #ddd8ff; border-radius: 10px; color: #5147a6; font-size: 12px;
+    }
+    .demo-banner b { color: #342b85; }
+    .page { display: none; animation: fade .22s ease; }
+    .page.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 22px; }
+    .eyebrow { color: var(--primary); font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: .11em; margin-bottom: 6px; }
+    h1 { font-size: 25px; line-height: 1.15; letter-spacing: -.035em; margin: 0 0 6px; }
+    .page-head p { margin: 0; color: var(--muted); max-width: 720px; font-size: 13px; }
+    .status-cluster { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+    .status-cluster span { color: var(--muted); font-size: 11px; }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.kpis { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grid.two { grid-template-columns: minmax(0,1.55fr) minmax(300px,.85fr); }
+    .grid.equal { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .stack { display: grid; gap: 16px; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card-pad { padding: 18px; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .card-head h2, .card-head h3 { margin: 0; color: var(--ink); letter-spacing: -.02em; }
+    .card-head h2 { font-size: 15px; }
+    .card-head h3 { font-size: 13px; }
+    .card-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .menu-dot { border: 0; background: transparent; color: var(--faint); cursor: pointer; font-size: 19px; line-height: 1; }
+
+    .kpi { padding: 17px 17px 15px; min-height: 133px; position: relative; overflow: hidden; }
+    .kpi::after { content: ""; position: absolute; width: 80px; height: 80px; border-radius: 50%; right: -34px; top: -38px; background: var(--primary-soft); opacity: .75; }
+    .kpi-label { color: var(--muted); font-size: 11px; font-weight: 650; display: flex; justify-content: space-between; align-items: center; }
+    .info { width: 16px; height: 16px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; color: var(--faint); font-size: 9px; }
+    .kpi-value { font-size: 27px; letter-spacing: -.04em; font-weight: 780; margin: 12px 0 7px; }
+    .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 750; }
+    .delta.up { color: var(--green); }
+    .delta.down { color: var(--red); }
+    .delta.neutral { color: var(--muted); }
+    .delta-note { color: var(--faint); font-size: 10px; margin-left: 5px; }
+    body.hide-comparison .delta, body.hide-comparison .delta-note { display: none; }
+
+    .growth-brief { padding: 20px; background: linear-gradient(125deg, #151b2d 0%, #202845 72%, #2d2b5f 100%); color: white; overflow: hidden; position: relative; }
+    .growth-brief::before { content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%; right: -100px; top: -145px; border: 46px solid rgba(124,108,255,.1); }
+    .brief-top { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
+    .growth-brief h2 { font-size: 16px; margin: 3px 0 5px; }
+    .growth-brief p { color: #b7bfcc; margin: 0; max-width: 680px; font-size: 12px; }
+    .ai-pill { border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.07); color: #ddd9ff; border-radius: 999px; padding: 5px 9px; font-size: 10px; font-weight: 800; letter-spacing: .04em; }
+    .brief-list { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 18px; position: relative; }
+    .brief-item { border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.055); padding: 12px; border-radius: 10px; }
+    .brief-item small { color: #8f99aa; display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; font-weight: 800; }
+    .brief-item strong { display: block; font-size: 12px; margin: 5px 0 4px; }
+    .brief-item span { color: #aeb6c5; font-size: 10px; }
+
+    .chart-wrap { height: 270px; position: relative; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .chart-legend { display: flex; gap: 14px; align-items: center; color: var(--muted); font-size: 10px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .metric-switch { display: flex; border: 1px solid var(--line); padding: 2px; border-radius: 8px; background: #f8f9fb; }
+    .metric-switch button { border: 0; background: transparent; font-size: 10px; color: var(--muted); padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+    .metric-switch button.active { color: var(--ink); background: white; box-shadow: 0 1px 3px rgba(16,24,40,.08); }
+
+    .opportunity-list { display: grid; gap: 10px; }
+    .opportunity {
+      border: 1px solid var(--line); background: white; padding: 13px; border-radius: 11px; display: grid;
+      grid-template-columns: 38px minmax(0,1fr) auto; gap: 11px; align-items: start; cursor: pointer; transition: .17s ease;
+    }
+    .opportunity:hover { border-color: #cfcaff; transform: translateY(-1px); box-shadow: 0 7px 18px rgba(79,70,229,.08); }
+    .opp-score { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 850; }
+    .opp-copy strong { display: block; font-size: 12px; margin: 1px 0 3px; }
+    .opp-copy p { margin: 0; color: var(--muted); font-size: 10px; }
+    .opp-value { text-align: right; }
+    .opp-value b { display: block; color: var(--green); font-size: 12px; }
+    .opp-value span { color: var(--faint); font-size: 9px; }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 8px; font-size: 9px; font-weight: 800; white-space: nowrap; }
+    .badge.green { background: var(--green-soft); color: #087451; }
+    .badge.amber { background: var(--amber-soft); color: #a65305; }
+    .badge.red { background: var(--red-soft); color: #b42318; }
+    .badge.blue { background: var(--blue-soft); color: #175cd3; }
+    .badge.purple { background: var(--primary-soft); color: #5145cd; }
+    .badge.grey { background: #f2f4f7; color: var(--muted); }
+    .source-tag { font-size: 9px; color: var(--faint); border: 1px solid var(--line); border-radius: 5px; padding: 2px 5px; }
+
+    .table-card { overflow: hidden; }
+    .table-card .card-head { padding: 17px 18px 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th { text-align: left; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #fbfcfd; white-space: nowrap; }
+    td { padding: 13px 16px; border-bottom: 1px solid var(--line-2); color: var(--ink-2); font-size: 11px; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fcfcff; }
+    td strong { color: var(--ink); }
+    .channel { display: flex; align-items: center; gap: 9px; }
+    .channel-icon { width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; background: #f2f4f7; font-weight: 850; font-size: 10px; }
+    .mini-bar { height: 5px; width: 74px; background: #eef1f5; border-radius: 999px; overflow: hidden; }
+    .mini-bar span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+    .row-action { border: 0; background: transparent; color: var(--primary); font-weight: 750; font-size: 10px; cursor: pointer; }
+
+    .section-space { margin-top: 16px; }
+    .section-label { display: flex; align-items: center; gap: 9px; margin: 23px 0 10px; color: var(--muted); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .09em; }
+    .section-label span { width: 21px; height: 21px; border-radius: 6px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 9px; }
+    .objective-tabs { display: flex; gap: 6px; align-items: center; overflow-x: auto; padding-bottom: 2px; }
+    .objective-tabs button { border: 1px solid var(--line); background: white; color: var(--muted); border-radius: 999px; padding: 7px 10px; font-size: 10px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+    .objective-tabs button.active { background: var(--nav); border-color: var(--nav); color: white; }
+    .roadmap-status { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 800; }
+    .roadmap-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+    .roadmap-status.ready::before { background: var(--green); }
+    .roadmap-status.planned::before { background: var(--blue); }
+    .roadmap-status.backlog::before { background: var(--amber); }
+    .hypothesis { max-width: 330px; white-space: normal; line-height: 1.45; color: var(--muted); }
+    .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .search { height: 34px; min-width: 230px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; outline: 0; background: white; color: var(--ink); }
+    .search:focus { border-color: #aaa2ff; box-shadow: 0 0 0 3px var(--primary-soft); }
+
+    .opp-board { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
+    .opp-card { padding: 17px; position: relative; overflow: hidden; }
+    .opp-card::after { content: ""; position: absolute; width: 86px; height: 86px; border-radius: 50%; right: -44px; top: -45px; background: var(--primary-soft); }
+    .opp-card .top { display: flex; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
+    .opp-card h3 { font-size: 13px; margin: 13px 0 6px; }
+    .opp-card p { color: var(--muted); font-size: 11px; margin: 0 0 15px; min-height: 48px; }
+    .impact-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+    .impact-row small { display: block; color: var(--faint); font-size: 8px; text-transform: uppercase; font-weight: 800; letter-spacing: .07em; }
+    .impact-row b { display: block; margin-top: 3px; font-size: 11px; }
+    .opp-card .btn { margin-top: 14px; width: 100%; justify-content: center; }
+
+    .campaign-summary { padding: 20px; background: linear-gradient(135deg,#ffffff,#fbfbff); }
+    .summary-number { display: flex; align-items: baseline; gap: 9px; }
+    .summary-number strong { font-size: 31px; letter-spacing: -.04em; }
+    .summary-number span { color: var(--green); font-size: 11px; font-weight: 800; }
+    .scale-meter { margin-top: 18px; }
+    .scale-meter-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; margin-bottom: 7px; }
+    .meter { height: 9px; background: #eceffa; border-radius: 99px; overflow: hidden; }
+    .meter span { height: 100%; display: block; background: linear-gradient(90deg,#4f46e5,#8b7cf7); border-radius: inherit; }
+
+    .creative-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; }
+    .creative-card { overflow: hidden; }
+    .creative-art { height: 168px; position: relative; padding: 16px; display: flex; align-items: flex-end; overflow: hidden; }
+    .creative-art::before { content: ""; position: absolute; width: 120px; height: 120px; border-radius: 50%; right: -25px; top: -20px; background: rgba(255,255,255,.28); }
+    .creative-art::after { content: ""; position: absolute; width: 72px; height: 94px; border-radius: 35px 35px 18px 18px; left: 50%; transform: translateX(-50%) rotate(5deg); top: 28px; background: rgba(255,255,255,.75); box-shadow: inset 0 0 0 8px rgba(255,255,255,.26),0 12px 35px rgba(44,30,80,.12); }
+    .creative-art.one { background: linear-gradient(145deg,#ffd7c8,#c7a2ff); }
+    .creative-art.two { background: linear-gradient(145deg,#b9eadb,#77b5ed); }
+    .creative-art.three { background: linear-gradient(145deg,#ffe29e,#f7a0bb); }
+    .creative-art.four { background: linear-gradient(145deg,#c6ccff,#9ce1e8); }
+    .creative-hook { position: relative; z-index: 2; background: rgba(255,255,255,.9); color: #2c2344; border-radius: 7px; padding: 5px 7px; font-size: 9px; font-weight: 850; box-shadow: 0 3px 10px rgba(16,24,40,.08); }
+    .creative-body { padding: 13px; }
+    .creative-body h3 { margin: 0 0 3px; font-size: 12px; }
+    .creative-body p { margin: 0; color: var(--muted); font-size: 10px; }
+    .creative-metrics { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
+    .creative-metrics small { display: block; color: var(--faint); font-size: 8px; }
+    .creative-metrics b { display: block; font-size: 11px; margin-top: 2px; }
+
+    .funnel { display: grid; gap: 9px; margin-top: 8px; }
+    .funnel-row { display: grid; grid-template-columns: 110px minmax(0,1fr) 70px 58px; gap: 9px; align-items: center; }
+    .funnel-row label { color: var(--ink-2); font-size: 10px; font-weight: 700; }
+    .funnel-bar { height: 28px; border-radius: 7px; background: #f0f1f5; overflow: hidden; }
+    .funnel-bar span { display: flex; align-items: center; padding-left: 10px; height: 100%; min-width: 28px; color: white; font-size: 9px; font-weight: 800; border-radius: inherit; background: linear-gradient(90deg,#5d54e8,#8176f5); }
+    .funnel-row b { font-size: 11px; text-align: right; }
+    .funnel-row em { font-style: normal; color: var(--muted); font-size: 9px; text-align: right; }
+
+    .query { display: flex; flex-direction: column; }
+    .query small { color: var(--faint); font-size: 9px; margin-top: 2px; }
+    .position { font-weight: 800; }
+    .position.win { color: var(--green); }
+    .position.near { color: var(--amber); }
+
+    .health-source { padding: 16px; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; gap: 12px; }
+    .source-icon { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; font-weight: 850; color: white; }
+    .source-icon.ga { background: linear-gradient(135deg,#f5a623,#ef6c00); }
+    .source-icon.ads { background: linear-gradient(135deg,#1a73e8,#34a853); }
+    .source-icon.gsc { background: linear-gradient(135deg,#4285f4,#7baaf7); }
+    .source-icon.store { background: linear-gradient(135deg,#6b43d6,#9a78ed); }
+    .health-source h3 { font-size: 12px; margin: 0 0 3px; }
+    .health-source p { color: var(--muted); font-size: 10px; margin: 0; }
+    .health-meta { text-align: right; }
+    .health-meta b { display: block; font-size: 10px; }
+    .health-meta span { color: var(--faint); font-size: 9px; }
+    .schema-list { display: grid; gap: 9px; }
+    .schema-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line-2); }
+    .schema-row:last-child { border-bottom: 0; }
+    .schema-row strong { display: block; font-size: 11px; }
+    .schema-row span { display: block; color: var(--muted); font-size: 9px; margin-top: 2px; }
+
+
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.38); z-index: 60; opacity: 0; pointer-events: none; transition: .2s ease; }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: fixed; right: 0; top: 0; bottom: 0; width: min(520px, 92vw); background: white; z-index: 61;
+      transform: translateX(100%); transition: .25s ease; box-shadow: -20px 0 55px rgba(16,24,40,.16); display: flex; flex-direction: column;
+    }
+    .drawer.open { transform: none; }
+    .drawer-head { padding: 19px 21px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .drawer-head h2 { margin: 6px 0 0; font-size: 19px; letter-spacing: -.03em; }
+    .close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: white; cursor: pointer; font-size: 18px; }
+    .drawer-body { overflow: auto; padding: 20px 21px; flex: 1; }
+    .drawer-section { margin-bottom: 22px; }
+    .drawer-section h3 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .evidence { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .evidence > div { padding: 11px; background: #f8f9fb; border: 1px solid var(--line); border-radius: 9px; }
+    .evidence small { display: block; color: var(--faint); font-size: 8px; text-transform: uppercase; }
+    .evidence b { display: block; margin-top: 4px; font-size: 13px; }
+    .steps { counter-reset: steps; display: grid; gap: 10px; }
+    .step { display: grid; grid-template-columns: 27px 1fr; gap: 9px; align-items: start; }
+    .step::before { counter-increment: steps; content: counter(steps); width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-size: 10px; font-weight: 850; }
+    .step strong { display: block; font-size: 11px; }
+    .step span { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+    .drawer-foot { border-top: 1px solid var(--line); padding: 14px 21px; display: flex; justify-content: flex-end; gap: 8px; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 15px); background: #101828; color: white; border-radius: 9px; padding: 10px 14px; font-size: 11px; z-index: 90; opacity: 0; pointer-events: none; transition: .22s ease; box-shadow: 0 12px 35px rgba(16,24,40,.24); }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+
+    /* Editorial brand system adapted from the reference proposal deck. */
+    body, button, select, input, textarea {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .sidebar { background: var(--nav); color: #c7c3ba; border-right-color: #282724; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 3px; background: var(--primary); color: #11110f;
+      box-shadow: none; font-family: Inter, ui-sans-serif, sans-serif; font-weight: 800;
+      font-size: 13px; letter-spacing: -.025em;
+    }
+    .brand-copy strong {
+      font-family: Inter, ui-sans-serif, sans-serif;
+      font-size: 14px; line-height: 1.1; letter-spacing: -.015em; font-weight: 700; white-space: nowrap;
+    }
+    .brand-copy span, .client-profile span { color: #8d8981; }
+    .nav-label { color: #7d7971; letter-spacing: .14em; }
+    .nav button { color: #c6c2ba; border-radius: 3px; border-left: 3px solid transparent; }
+    .nav button:hover { background: #1b1b19; }
+    .nav button.active { background: #1b1b19; border-left-color: var(--primary); box-shadow: none; }
+    .nav button.active .nav-icon { color: var(--primary); }
+    .nav-badge { background: var(--primary); color: #11110f; border-radius: 3px; }
+    .client-avatar { background: var(--primary); color: #11110f; border-radius: 3px; }
+
+    .topbar { background: rgba(243,242,238,.96); }
+    .control, .btn, .search { border-radius: 4px; }
+    .btn.primary { color: #11110f; }
+    .btn.primary:hover { background: #ec4420; }
+    .demo-banner {
+      background: #fff; border-color: var(--line); border-left: 4px solid var(--primary);
+      border-radius: 4px; color: var(--muted);
+    }
+    .demo-banner b { color: var(--ink); }
+    .eyebrow { color: var(--primary); }
+    h1, h2, h3, .card-head h2, .card-head h3, .drawer-head h2, .growth-brief h2,
+    .opp-card h3, .creative-body h3, .health-source h3 {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 700; letter-spacing: -.025em;
+    }
+    h1 { font-size: 29px; line-height: 1.1; font-weight: 800; letter-spacing: -.035em; }
+    .card { border-radius: var(--radius); }
+    .card-head h2 { font-size: 16px; line-height: 1.15; }
+    .card-head h3, .creative-body h3, .health-source h3 { font-size: 13px; line-height: 1.2; }
+    .opp-card h3 { font-size: 14px; line-height: 1.25; }
+    .kpi { min-height: 132px; }
+    .kpi::after { width: 8px; height: 8px; right: 17px; top: 17px; border-radius: 0; background: var(--primary); opacity: 1; }
+    .kpi-value, .summary-number strong { font-family: Inter, ui-sans-serif, sans-serif; font-weight: 700; }
+    .kpi-value { font-size: 30px; letter-spacing: -.025em; }
+
+    .growth-brief { background: #0d0d0c; border-left: 5px solid var(--primary); border-radius: 5px; }
+    .growth-brief::before { display: none; }
+    .growth-brief h2 { font-size: 19px; }
+    .growth-brief p { color: #c6c2ba; }
+    .ai-pill { border-color: var(--primary); background: transparent; color: #fff; border-radius: 3px; }
+    .brief-item { border-color: #34332f; background: #181816; border-radius: 4px; }
+    .brief-item small { color: var(--primary); }
+    .brief-item span { color: #aaa69e; }
+
+    .metric-switch, .metric-switch button, .opportunity, .opp-score, .channel-icon,
+    .section-label span, .objective-tabs button, .source-tag, .creative-hook,
+    .funnel-bar, .source-icon, .close, .evidence > div, .step::before, .toast { border-radius: 4px; }
+    .opportunity:hover { border-color: var(--primary); box-shadow: 0 7px 18px rgba(255,79,41,.08); }
+    .badge { border-radius: 3px; }
+    .badge.purple { background: #eadcf1; color: #352b39; }
+    .badge.blue { background: var(--blue-soft); color: #285b6a; }
+    .badge.green { color: #205f4a; }
+    .badge.amber { color: #8b5511; }
+    .badge.red { color: #9e3729; }
+    th { background: #f0eee9; }
+    tbody tr:hover { background: #faf8f4; }
+    .mini-bar { background: #e7e3dc; }
+    .section-label span { background: var(--primary); color: #11110f; }
+    .objective-tabs button.active { background: var(--nav); border-color: var(--nav); }
+    .opp-card::after { width: 8px; height: 8px; right: 17px; top: 17px; border-radius: 0; background: var(--primary); }
+    .campaign-summary { background: #fff; }
+    .meter { background: #e6e2dc; }
+    .meter span, .funnel-bar span { background: var(--primary); }
+    .creative-art.one { background: linear-gradient(145deg,#ffd9cb,#ff8b6e); }
+    .creative-art.two { background: linear-gradient(145deg,#dff1f5,#9dd6e3); }
+    .creative-art.three { background: linear-gradient(145deg,#f0e1f4,#d9b8e9); }
+    .creative-art.four { background: linear-gradient(145deg,#fff1be,#efd27a); }
+    .creative-hook { color: var(--ink); }
+    .drawer, .control, .btn, .search { background: var(--paper); }
+    .drawer-section h3 { color: var(--primary); }
+    .evidence > div { background: #f6f4f0; }
+    .step::before { background: var(--primary); color: #11110f; }
+    .toast { background: var(--nav); }
+    .nav-icon, .client-avatar, .channel-icon, .source-icon {
+      font-family: Inter, ui-sans-serif, sans-serif;
+      font-weight: 700; letter-spacing: -.01em;
+    }
+    .nav-icon { font-size: 14px; }
+    .client-avatar { font-size: 11px; }
+    .channel-icon { font-size: 10px; }
+    .source-icon { font-size: 12px; }
+
+    @media (max-width: 1180px) {
+      .grid.kpis { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .grid.two { grid-template-columns: 1fr; }
+      .creative-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .opp-board { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .topbar { padding: 0 20px; }
+      .content { padding: 23px 20px 48px; }
+    }
+    @media (max-width: 840px) {
+      .app { grid-template-columns: 72px minmax(0,1fr); }
+      .sidebar { padding-left: 9px; padding-right: 9px; }
+      .brand { justify-content: center; padding-left: 0; padding-right: 0; }
+      .brand-copy, .nav-label, .nav button span:not(.nav-icon):not(.nav-badge), .side-footer .client-profile > div:last-child { display: none; }
+      .nav button { justify-content: center; padding: 10px 7px; }
+      .nav-badge { position: absolute; transform: translate(13px,-11px); min-width: 16px; height: 16px; padding: 0 4px; }
+      .client-profile { justify-content: center; }
+      .top-actions .control, .top-actions .btn.secondary { display: none; }
+      .brief-list { grid-template-columns: 1fr; }
+      .grid.three { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; height: 62px; left: 0; right: 0; bottom: 0; top: auto; flex-direction: row; z-index: 80; padding: 7px 8px; overflow-x: auto; }
+      .brand, .nav-label, .side-footer { display: none; }
+      .nav { display: flex; width: max-content; gap: 4px; }
+      .nav button { width: 51px; height: 46px; }
+      .nav-badge { display: none; }
+      .topbar { height: 58px; padding: 0 13px; }
+      .content { padding: 18px 13px 88px; }
+      .grid.kpis, .grid.equal, .creative-grid, .opp-board { grid-template-columns: 1fr; }
+      .page-head { flex-direction: column; }
+      .demo-banner { align-items: flex-start; }
+      .funnel-row { grid-template-columns: 88px minmax(0,1fr) 48px; }
+      .funnel-row em { display: none; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Dashboard navigation">
+      <div class="brand">
+        <div class="brand-mark">R&amp;R</div>
+        <div class="brand-copy"><strong>Ecommerce Performance</strong><span>Raph &amp; Remy</span></div>
+      </div>
+      <div class="nav-label">Decision support</div>
+      <nav class="nav">
+        <button class="active" data-page="executive"><span class="nav-icon">1</span><span>Executive summary</span></button>
+        <button data-page="opportunities"><span class="nav-icon">2</span><span>Opportunities &amp; tests</span><span class="nav-badge">12</span></button>
+      </nav>
+      <div class="nav-label">Performance analysis</div>
+      <nav class="nav">
+        <button data-page="paid"><span class="nav-icon">3</span><span>Acquisition performance</span></button>
+        <button data-page="products"><span class="nav-icon">4</span><span>Website &amp; product</span></button>
+        <button data-page="creative"><span class="nav-icon">5</span><span>Creative performance</span></button>
+        <button data-page="organic"><span class="nav-icon">6</span><span>Organic search</span></button>
+      </nav>
+      <div class="nav-label">Measurement</div>
+      <nav class="nav">
+        <button data-page="health"><span class="nav-icon">7</span><span>Data quality</span></button>
+      </nav>
+      <div class="side-footer">
+        <div class="client-profile">
+          <div class="client-avatar">RR</div>
+          <div><strong>Raph &amp; Remy</strong><span>Singapore · SGD</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs"><span>Raph &amp; Remy</span><span>/</span><b id="crumbTitle">Executive summary</b></div>
+        <div class="top-actions">
+          <select id="rangeSelect" class="control" aria-label="Date range">
+            <option value="28">Last 28 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <label class="control"><input id="compareToggle" type="checkbox" checked /> Compare</label>
+          <button class="btn secondary" id="exportBtn">Export</button>
+          <button class="btn primary" id="shareBtn">Share report</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="demo-banner"><div><b>Interactive prototype:</b> figures are illustrative and the live connectors are not linked yet.</div><span class="badge purple">Demo data</span></div>
+
+        <section class="page active" id="page-executive">
+          <div class="page-head">
+            <div><div class="eyebrow">Executive summary</div><h1>Ecommerce performance summary</h1><p>Revenue, orders, conversion efficiency and the priority decisions supported by paid media, website, product, creative and organic search data.</p></div>
+            <div class="status-cluster"><i class="live-dot"></i><span>Illustrative data | refreshed 8:00 AM</span></div>
+          </div>
+
+          <div class="section-label"><span>1</span>Business outcomes</div>
+          <div class="grid kpis">
+            <article class="card kpi"><div class="kpi-label">Net revenue <span class="info">i</span></div><div class="kpi-value" data-base="74128" data-format="currency">$74,128</div><span class="delta up">↑ 12.4%</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Orders <span class="info">i</span></div><div class="kpi-value" data-base="552" data-format="number">552</div><span class="delta up">↑ 8.1%</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Average order value <span class="info">i</span></div><div class="kpi-value" data-base="134.29" data-format="currency2">$134.29</div><span class="delta up">↑ 4.0%</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Purchase conversion <span class="info">i</span></div><div class="kpi-value">1.63%</div><span class="delta down">↓ 0.14 pts</span><span class="delta-note">vs prior period</span></article>
+          </div>
+
+          <div class="section-label"><span>2</span>Recommended decisions</div>
+          <article class="card growth-brief">
+            <div class="brief-top"><div><div class="eyebrow" style="color:#ff4f29">Current performance assessment</div><h2>Revenue increased while purchase conversion declined.</h2><p>Paid media efficiency and average order value improved during the period. The recommended priorities are controlled budget increases, a mobile product-page test and additional variants of the strongest gifting creative concept.</p></div><span class="ai-pill">MANAGEMENT SUMMARY</span></div>
+            <div class="brief-list">
+              <div class="brief-item"><small>Budget recommendation</small><strong>Increase Brand Search by 15%</strong><span>ROAS is stable and impression share has 21% headroom.</span></div>
+              <div class="brief-item"><small>Creative test</small><strong>Produce three newborn gifting variants</strong><span>The existing concept has a 32% lower CPA than the account average.</span></div>
+              <div class="brief-item"><small>Conversion test</small><strong>Test the mobile product-page layout</strong><span>Estimated monthly revenue potential is $8.2k.</span></div>
+            </div>
+          </article>
+
+          <div class="section-label"><span>3</span>Supporting analysis</div>
+          <div class="grid two section-space">
+            <article class="card card-pad">
+              <div class="card-head"><div><h2>Revenue momentum</h2><p>Daily revenue with previous-period benchmark</p></div><div class="metric-switch"><button class="active" data-chart="revenue">Revenue</button><button data-chart="orders">Orders</button></div></div>
+              <div class="chart-wrap"><canvas id="revenueChart" aria-label="Revenue trend chart"></canvas></div>
+              <div class="chart-legend"><span><i class="legend-dot" style="background:#ff4f29"></i>Current period</span><span><i class="legend-dot" style="background:#b9b4aa"></i>Previous period</span></div>
+            </article>
+            <article class="card card-pad">
+              <div class="card-head"><div><h2>Priority actions</h2><p>Ranked by commercial impact, confidence and implementation effort</p></div><span class="badge purple">6 open</span></div>
+              <div class="opportunity-list">
+                <div class="opportunity" data-opportunity="pdp"><div class="opp-score">92</div><div class="opp-copy"><strong>Recover mobile PDP drop-off</strong><p>Product detail → add-to-cart is 28% below desktop.</p></div><div class="opp-value"><b>+$8.2k</b><span>monthly</span></div></div>
+                <div class="opportunity" data-opportunity="scale"><div class="opp-score">88</div><div class="opp-copy"><strong>Scale high-intent search</strong><p>Brand and gifting campaigns have budget headroom.</p></div><div class="opp-value"><b>+$5.6k</b><span>monthly</span></div></div>
+                <div class="opportunity" data-opportunity="creative"><div class="opp-score">84</div><div class="opp-copy"><strong>Expand the strongest creative concept</strong><p>The gifting concept is outperforming the account baseline.</p></div><div class="opp-value"><b>-18% CPA</b><span>forecast</span></div></div>
+                <div class="opportunity" data-opportunity="seo"><div class="opp-score">77</div><div class="opp-copy"><strong>Improve queries near page one</strong><p>14 non-brand terms rank between positions 8 and 15.</p></div><div class="opp-value"><b>+420</b><span>clicks/mo</span></div></div>
+              </div>
+            </article>
+          </div>
+
+          <article class="card table-card section-space">
+            <div class="card-head"><div><h2>Channel contribution</h2><p>Commercial performance and recommended next move</p></div><button class="btn ghost" data-nav="paid">View paid media</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Channel</th><th>Revenue</th><th>Share</th><th>Spend</th><th>ROAS</th><th>Trend</th><th>Recommendation</th></tr></thead><tbody>
+              <tr><td><div class="channel"><span class="channel-icon">GS</span><strong>Google Ads</strong></div></td><td>$41,860</td><td><div class="mini-bar"><span style="width:56%"></span></div></td><td>$9,280</td><td><strong>4.51×</strong></td><td><span class="delta up">↑ 16.2%</span></td><td><span class="badge green">Scale selectively</span></td></tr>
+              <tr><td><div class="channel"><span class="channel-icon">OR</span><strong>Organic search</strong></div></td><td>$14,930</td><td><div class="mini-bar"><span style="width:20%;background:#1570ef"></span></div></td><td>Not applicable</td><td>Not applicable</td><td><span class="delta up">↑ 9.4%</span></td><td><span class="badge blue">Expand non-brand</span></td></tr>
+              <tr><td><div class="channel"><span class="channel-icon">DR</span><strong>Direct</strong></div></td><td>$10,240</td><td><div class="mini-bar"><span style="width:14%;background:#0f9f6e"></span></div></td><td>Not applicable</td><td>Not applicable</td><td><span class="delta neutral">→ 0.8%</span></td><td><span class="badge grey">Monitor</span></td></tr>
+              <tr><td><div class="channel"><span class="channel-icon">EM</span><strong>Email / CRM</strong></div></td><td>$7,098</td><td><div class="mini-bar"><span style="width:10%;background:#d97706"></span></div></td><td>$420</td><td><strong>16.9×</strong></td><td><span class="delta down">↓ 5.1%</span></td><td><span class="badge amber">Refresh flows</span></td></tr>
+            </tbody></table></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-opportunities">
+          <div class="page-head"><div><div class="eyebrow">Decision support</div><h1>Opportunities and test roadmap</h1><p>Recommendations are ranked by expected impact, evidence quality and implementation effort. The test roadmap defines the hypothesis, primary metric and stage for each experiment.</p></div><div class="filter-row"><input id="oppSearch" class="search" type="search" placeholder="Search opportunities and tests" /><select class="control"><option>All sources</option><option>Google Ads</option><option>GA4</option><option>Search Console</option></select></div></div>
+
+          <div class="section-label"><span>1</span>Decision summary</div>
+          <div class="grid kpis">
+            <article class="card kpi"><div class="kpi-label">Open opportunities</div><div class="kpi-value">12</div><span class="delta neutral">Across 6 objectives</span></article>
+            <article class="card kpi"><div class="kpi-label">Estimated monthly potential</div><div class="kpi-value">$19.4k</div><span class="delta up">Revenue estimate</span></article>
+            <article class="card kpi"><div class="kpi-label">A/B tests proposed</div><div class="kpi-value">8</div><span class="delta neutral">3 ready to launch</span></article>
+            <article class="card kpi"><div class="kpi-label">High-confidence actions</div><div class="kpi-value">3</div><span class="delta up">Low or medium effort</span></article>
+          </div>
+
+          <div class="section-label"><span>2</span>Priority recommendations</div>
+          <div class="objective-tabs" id="objectiveTabs" aria-label="Filter opportunities by objective">
+            <button class="active" data-objective="all">All objectives</button><button data-objective="traffic">Traffic</button><button data-objective="engagement">Engagement</button><button data-objective="ctr">Click-through rate</button><button data-objective="conversion">Conversion</button><button data-objective="aov">Order value</button><button data-objective="revenue">Revenue</button>
+          </div>
+          <div class="opp-board section-space" id="oppBoard">
+            <article class="card opp-card" data-opportunity="pdp" data-objective="conversion" data-search="mobile product page conversion value proposition"><div class="top"><span class="badge red">Conversion</span><span class="source-tag">GA4</span></div><h3>Test the mobile product-page content order</h3><p>Add-to-cart rate on mobile is 28% below desktop for the three highest-traffic product families.</p><div class="impact-row"><div><small>Potential</small><b>+$8.2k/mo</b></div><div><small>Confidence</small><b>High</b></div><div><small>Effort</small><b>Medium</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="scale" data-objective="revenue" data-search="google ads brand search budget revenue"><div class="top"><span class="badge green">Revenue</span><span class="source-tag">Google Ads</span></div><h3>Increase high-intent search budget</h3><p>Brand and gifting campaigns have a 4.8x ROAS and 21% impression-share headroom.</p><div class="impact-row"><div><small>Potential</small><b>+$5.6k/mo</b></div><div><small>Confidence</small><b>High</b></div><div><small>Effort</small><b>Low</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="creative" data-objective="engagement" data-search="creative newborn gift unboxing engagement"><div class="top"><span class="badge purple">Engagement</span><span class="source-tag">Ads + GA4</span></div><h3>Test three variants of the strongest gifting concept</h3><p>The current concept produces 41% more qualified visits and a 32% lower CPA than the account baseline.</p><div class="impact-row"><div><small>Potential</small><b>-18% CPA</b></div><div><small>Confidence</small><b>Medium-high</b></div><div><small>Effort</small><b>Low</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="seo" data-objective="traffic" data-search="seo organic traffic commercial queries page one"><div class="top"><span class="badge blue">Traffic</span><span class="source-tag">Search Console</span></div><h3>Improve commercial queries in positions 8 to 15</h3><p>Fourteen non-brand terms have 23.8k monthly impressions and are close to page-one visibility.</p><div class="impact-row"><div><small>Potential</small><b>+420 clicks</b></div><div><small>Confidence</small><b>Medium</b></div><div><small>Effort</small><b>Medium</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="adcopy" data-objective="ctr" data-search="search ad copy ctr personalization delivery"><div class="top"><span class="badge blue">Click-through rate</span><span class="source-tag">Google Ads</span></div><h3>Test delivery certainty against personalisation in ad copy</h3><p>Search terms show high purchase intent, but non-brand ad CTR is below the campaign benchmark.</p><div class="impact-row"><div><small>Potential</small><b>+0.7 pts CTR</b></div><div><small>Confidence</small><b>Medium</b></div><div><small>Effort</small><b>Low</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="bundle" data-objective="aov" data-search="product bundle order value pyjamas personalization"><div class="top"><span class="badge amber">Order value</span><span class="source-tag">GA4</span></div><h3>Test guided bundles for products viewed together</h3><p>Personalised pyjamas and newborn gift boxes have high co-view behaviour but low combined purchase rates.</p><div class="impact-row"><div><small>Potential</small><b>+$7 AOV</b></div><div><small>Confidence</small><b>Medium</b></div><div><small>Effort</small><b>Medium</b></div></div><button class="btn">Review recommendation</button></article>
+            <article class="card opp-card" data-opportunity="stickycart" data-objective="conversion" data-search="sticky add cart mobile conversion"><div class="top"><span class="badge red">Conversion</span><span class="source-tag">GA4</span></div><h3>Test a persistent mobile add-to-cart control</h3><p>The primary purchase control is below the fold on common device sizes and long personalised product pages.</p><div class="impact-row"><div><small>Potential</small><b>+0.2 pts CVR</b></div><div><small>Confidence</small><b>Medium</b></div><div><small>Effort</small><b>Low</b></div></div><button class="btn">Review recommendation</button></article>
+          </div>
+
+          <div class="section-label"><span>3</span>A/B test roadmap</div>
+          <article class="card table-card">
+            <div class="card-head"><div><h2>Proposed experiments</h2><p>Tests are ordered by expected commercial value and readiness</p></div><span class="badge purple">8 tests</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Test</th><th>Objective</th><th>Hypothesis</th><th>Primary metric</th><th>Potential impact</th><th>Status</th></tr></thead><tbody>
+              <tr><td><strong>Mobile product-page content order</strong></td><td><span class="badge red">Conversion</span></td><td class="hypothesis">Moving delivery, personalisation and trust information beside the primary CTA will reduce purchase uncertainty.</td><td>Add-to-cart rate</td><td>+$8.2k monthly revenue</td><td><span class="roadmap-status ready">Ready</span></td></tr>
+              <tr><td><strong>Persistent mobile add-to-cart</strong></td><td><span class="badge red">Conversion</span></td><td class="hypothesis">Keeping the primary CTA visible while shoppers review product details will increase cart actions.</td><td>Purchase conversion</td><td>+0.2 percentage points</td><td><span class="roadmap-status ready">Ready</span></td></tr>
+              <tr><td><strong>Search ad message test</strong></td><td><span class="badge blue">CTR</span></td><td class="hypothesis">Delivery certainty will produce a higher non-brand CTR than personalisation-led messaging.</td><td>Search ad CTR</td><td>+0.7 percentage points</td><td><span class="roadmap-status ready">Ready</span></td></tr>
+              <tr><td><strong>Gift collection product order</strong></td><td><span class="badge purple">Engagement</span></td><td class="hypothesis">Sorting by gifting occasion will improve product discovery compared with a bestseller-first order.</td><td>Product view rate</td><td>+12% product views</td><td><span class="roadmap-status planned">Planned</span></td></tr>
+              <tr><td><strong>Creative opening frame</strong></td><td><span class="badge purple">Engagement</span></td><td class="hypothesis">An unboxing reaction will retain more viewers than a product close-up during the first three seconds.</td><td>Qualified visit rate</td><td>+15% qualified visits</td><td><span class="roadmap-status planned">Planned</span></td></tr>
+              <tr><td><strong>Free-shipping threshold placement</strong></td><td><span class="badge amber">Order value</span></td><td class="hypothesis">Showing the amount required for free shipping in the cart will increase product attachment.</td><td>Average order value</td><td>+$5 to $9 AOV</td><td><span class="roadmap-status planned">Planned</span></td></tr>
+              <tr><td><strong>Social proof beside CTA</strong></td><td><span class="badge red">Conversion</span></td><td class="hypothesis">Product-specific reviews beside the CTA will improve confidence for new visitors.</td><td>Purchase conversion</td><td>+5% to 10%</td><td><span class="roadmap-status backlog">Backlog</span></td></tr>
+              <tr><td><strong>Gift collection title and description</strong></td><td><span class="badge blue">Organic CTR</span></td><td class="hypothesis">A more specific gift-intent title will increase organic CTR without reducing ranking position.</td><td>Organic CTR</td><td>+0.4 percentage points</td><td><span class="roadmap-status backlog">Backlog</span></td></tr>
+            </tbody></table></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-paid">
+          <div class="page-head"><div><div class="eyebrow">Acquisition performance</div><h1>Paid media performance and budget recommendations</h1><p>Campaign spend, revenue, efficiency, impression-share capacity and the recommended budget action for each campaign.</p></div><button class="btn primary" data-opportunity="scale">Review budget recommendation</button></div>
+          <div class="grid kpis">
+            <article class="card kpi"><div class="kpi-label">Ad spend</div><div class="kpi-value">$9,280</div><span class="delta up">↑ 9.1%</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Paid revenue</div><div class="kpi-value">$41,860</div><span class="delta up">↑ 16.2%</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Blended ROAS</div><div class="kpi-value">4.51×</div><span class="delta up">↑ 0.28×</span><span class="delta-note">vs prior period</span></article>
+            <article class="card kpi"><div class="kpi-label">Cost per order</div><div class="kpi-value">$29.84</div><span class="delta up">↓ 6.7%</span><span class="delta-note">improvement</span></article>
+          </div>
+          <div class="grid two section-space">
+            <article class="card campaign-summary"><div class="card-head"><div><h2>Recommended budget increase</h2><p>Estimate based on current efficiency and impression share</p></div><span class="badge green">High confidence</span></div><div class="summary-number"><strong>+$2,050</strong><span>recommended monthly spend</span></div><div class="scale-meter"><div class="scale-meter-head"><span>Current $9.3k</span><span>Recommended $11.3k</span></div><div class="meter"><span style="width:82%"></span></div></div><p style="color:var(--muted);font-size:11px;margin:16px 0 0">Increase budgets in 10% to 15% increments and review performance after three conversion cycles.</p></article>
+            <article class="card card-pad"><div class="card-head"><div><h2>Efficiency guardrails</h2><p>Client-approved thresholds</p></div><button class="menu-dot">···</button></div><div class="schema-list"><div class="schema-row"><div><strong>Minimum ROAS</strong><span>Scaling pauses below threshold</span></div><span class="badge green">3.5×</span></div><div class="schema-row"><div><strong>Maximum cost per order</strong><span>7-day blended basis</span></div><span class="badge green">$38</span></div><div class="schema-row"><div><strong>Learning buffer</strong><span>Minimum conversions before decision</span></div><span class="badge grey">30 orders</span></div></div></article>
+          </div>
+          <article class="card table-card section-space"><div class="card-head"><div><h2>Campaign scaling map</h2><p>Ranked by incremental revenue potential</p></div><span class="badge purple">Illustrative</span></div><div class="table-wrap"><table><thead><tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Revenue</th><th>ROAS</th><th>CPA</th><th>Headroom</th><th>Action</th></tr></thead><tbody>
+            <tr><td><strong>Brand Search · SG</strong></td><td><span class="badge green">Efficient</span></td><td>$1,240</td><td>$6,180</td><td><strong>4.98×</strong></td><td>$22.55</td><td>21%</td><td><button class="row-action" data-opportunity="scale">Scale +15%</button></td></tr>
+            <tr><td><strong>Newborn Gift Sets · PMax</strong></td><td><span class="badge green">Efficient</span></td><td>$3,180</td><td>$15,020</td><td><strong>4.72×</strong></td><td>$28.14</td><td>18%</td><td><button class="row-action" data-opportunity="creative">Scale +10%</button></td></tr>
+            <tr><td><strong>Personalised Pyjamas</strong></td><td><span class="badge amber">Watch</span></td><td>$2,640</td><td>$10,180</td><td><strong>3.86×</strong></td><td>$34.29</td><td>9%</td><td><button class="row-action">Hold</button></td></tr>
+            <tr><td><strong>Generic Baby Gifts</strong></td><td><span class="badge red">Declining</span></td><td>$1,420</td><td>$3,710</td><td><strong>2.61×</strong></td><td>$45.81</td><td>None</td><td><button class="row-action">Reduce -15%</button></td></tr>
+          </tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-creative">
+          <div class="page-head"><div><div class="eyebrow">Creative performance</div><h1>Creative concept performance and proposed tests</h1><p>Assets are grouped by concept, message and format to identify which elements should be retained, changed or tested.</p></div><button class="btn primary" data-opportunity="creative">Review creative test</button></div>
+          <div class="grid kpis">
+            <article class="card kpi"><div class="kpi-label">Assets live</div><div class="kpi-value">24</div><span class="delta neutral">4 concepts</span></article>
+            <article class="card kpi"><div class="kpi-label">Winning assets</div><div class="kpi-value">6</div><span class="delta up">25% hit rate</span></article>
+            <article class="card kpi"><div class="kpi-label">Top concept ROAS</div><div class="kpi-value">5.34×</div><span class="delta up">↑ 22%</span></article>
+            <article class="card kpi"><div class="kpi-label">Fatigue risk</div><div class="kpi-value">3</div><span class="delta down">assets flagged</span></article>
+          </div>
+          <div class="creative-grid section-space">
+            <article class="card creative-card"><div class="creative-art one"><span class="creative-hook">Gift-ready in one box</span></div><div class="creative-body"><h3>Newborn gifting · Unboxing</h3><p>Convenience + emotional gifting</p><div class="creative-metrics"><div><small>ROAS</small><b>5.34×</b></div><div><small>CPA</small><b>$23.80</b></div><div><small>CVR</small><b>2.42%</b></div></div></div></article>
+            <article class="card creative-card"><div class="creative-art two"><span class="creative-hook">Soft from the first cuddle</span></div><div class="creative-body"><h3>Bamboo softness · Detail</h3><p>Material benefit + reassurance</p><div class="creative-metrics"><div><small>ROAS</small><b>4.81×</b></div><div><small>CPA</small><b>$27.10</b></div><div><small>CVR</small><b>2.13%</b></div></div></div></article>
+            <article class="card creative-card"><div class="creative-art three"><span class="creative-hook">Made personal for them</span></div><div class="creative-body"><h3>Personalisation · Reaction</h3><p>Name detail + keepsake value</p><div class="creative-metrics"><div><small>ROAS</small><b>4.22×</b></div><div><small>CPA</small><b>$31.20</b></div><div><small>CVR</small><b>1.91%</b></div></div></div></article>
+            <article class="card creative-card"><div class="creative-art four"><span class="creative-hook">Everyday comfort, sorted</span></div><div class="creative-body"><h3>Bundle value · Product stack</h3><p>Practicality + savings</p><div class="creative-metrics"><div><small>ROAS</small><b>3.47×</b></div><div><small>CPA</small><b>$38.60</b></div><div><small>CVR</small><b>1.58%</b></div></div></div></article>
+          </div>
+          <div class="grid equal section-space"><article class="card card-pad"><div class="card-head"><div><h2>Concept performance</h2><p>Revenue efficiency by message family</p></div></div><div class="chart-wrap" style="height:230px"><canvas id="creativeChart"></canvas></div></article><article class="card card-pad"><div class="card-head"><div><h2>Next creative sprint</h2><p>Recommended variations from the strongest evidence</p></div><span class="badge purple">3 briefs</span></div><div class="schema-list"><div class="schema-row"><div><strong>Show the full gift journey</strong><span>Selection → personalisation → unboxing reaction</span></div><span class="badge green">Priority 1</span></div><div class="schema-row"><div><strong>Lead with delivery certainty</strong><span>Add “ready to gift” and delivery promise to hook</span></div><span class="badge purple">Priority 2</span></div><div class="schema-row"><div><strong>Translate softness into proof</strong><span>Close-up fabric test + parent testimonial</span></div><span class="badge blue">Priority 3</span></div></div></article></div>
+        </section>
+
+        <section class="page" id="page-products">
+          <div class="page-head"><div><div class="eyebrow">Website and product performance</div><h1>Website conversion and product performance</h1><p>Product discovery, add-to-cart behaviour, checkout completion and revenue contribution by product family.</p></div><button class="btn primary" data-opportunity="pdp">Review conversion recommendation</button></div>
+          <div class="grid kpis"><article class="card kpi"><div class="kpi-label">Product views</div><div class="kpi-value">38,420</div><span class="delta up">↑ 10.8%</span></article><article class="card kpi"><div class="kpi-label">Add-to-cart rate</div><div class="kpi-value">7.8%</div><span class="delta down">↓ 0.6 pts</span></article><article class="card kpi"><div class="kpi-label">Checkout completion</div><div class="kpi-value">48.6%</div><span class="delta up">↑ 2.1 pts</span></article><article class="card kpi"><div class="kpi-label">Items per order</div><div class="kpi-value">1.74</div><span class="delta up">↑ 3.2%</span></article></div>
+          <div class="grid two section-space"><article class="card card-pad"><div class="card-head"><div><h2>Purchase funnel</h2><p>Sessions and step-to-step conversion</p></div><select class="control"><option>All devices</option><option>Mobile</option><option>Desktop</option></select></div><div class="funnel"><div class="funnel-row"><label>Sessions</label><div class="funnel-bar"><span style="width:100%">33,850</span></div><b>33,850</b><em>100%</em></div><div class="funnel-row"><label>Product view</label><div class="funnel-bar"><span style="width:72%">24,370</span></div><b>24,370</b><em>72.0%</em></div><div class="funnel-row"><label>Add to cart</label><div class="funnel-bar"><span style="width:30%">2,998</span></div><b>2,998</b><em>12.3%</em></div><div class="funnel-row"><label>Checkout</label><div class="funnel-bar"><span style="width:19%">1,820</span></div><b>1,820</b><em>60.7%</em></div><div class="funnel-row"><label>Purchase</label><div class="funnel-bar"><span style="width:10%">885</span></div><b>885</b><em>48.6%</em></div></div></article><article class="card card-pad"><div class="card-head"><div><h2>Leakage diagnosis</h2><p>Largest gaps weighted by traffic and value</p></div></div><div class="opportunity-list"><div class="opportunity" data-opportunity="pdp"><div class="opp-score">92</div><div class="opp-copy"><strong>Mobile PDP → cart</strong><p>28% below desktop across gift collections.</p></div><div class="opp-value"><b>+$8.2k</b><span>monthly</span></div></div><div class="opportunity" data-opportunity="bundle"><div class="opp-score">81</div><div class="opp-copy"><strong>Low bundle attachment</strong><p>High co-view affinity but only 6% bundle uptake.</p></div><div class="opp-value"><b>+$7</b><span>AOV</span></div></div><div class="opportunity"><div class="opp-score">68</div><div class="opp-copy"><strong>Express checkout visibility</strong><p>Buttons appear below the fold on common devices.</p></div><div class="opp-value"><b>+0.2 pts</b><span>CVR</span></div></div></div></article></div>
+          <article class="card table-card section-space"><div class="card-head"><div><h2>Product growth map</h2><p>Revenue, conversion and merchandising action by product family</p></div><button class="btn ghost">Download CSV</button></div><div class="table-wrap"><table><thead><tr><th>Product family</th><th>Revenue</th><th>Views</th><th>Cart rate</th><th>Purchase rate</th><th>AOV</th><th>Signal</th></tr></thead><tbody><tr><td><strong>Newborn gift sets</strong></td><td>$21,480</td><td>8,920</td><td>10.8%</td><td>2.81%</td><td>$151</td><td><span class="badge green">Scale traffic</span></td></tr><tr><td><strong>Personalised pyjamas</strong></td><td>$18,260</td><td>10,340</td><td>8.1%</td><td>1.94%</td><td>$128</td><td><span class="badge amber">Improve PDP</span></td></tr><tr><td><strong>Bamboo essentials</strong></td><td>$12,980</td><td>11,770</td><td>6.4%</td><td>1.48%</td><td>$92</td><td><span class="badge blue">Build bundles</span></td></tr><tr><td><strong>Personalised blankets</strong></td><td>$9,740</td><td>4,850</td><td>7.7%</td><td>2.11%</td><td>$136</td><td><span class="badge grey">Maintain</span></td></tr></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-organic">
+          <div class="page-head"><div><div class="eyebrow">Organic search</div><h1>Organic search performance and priorities</h1><p>Brand and non-brand visibility, click-through rate, ranking position and commercial queries with measurable traffic potential.</p></div><button class="btn primary" data-opportunity="seo">Review organic search recommendation</button></div>
+          <div class="grid kpis"><article class="card kpi"><div class="kpi-label">Organic clicks</div><div class="kpi-value">1,348</div><span class="delta up">↑ 9.4%</span></article><article class="card kpi"><div class="kpi-label">Impressions</div><div class="kpi-value">61,747</div><span class="delta up">↑ 18.8%</span></article><article class="card kpi"><div class="kpi-label">Click-through rate</div><div class="kpi-value">2.18%</div><span class="delta down">↓ 0.19 pts</span></article><article class="card kpi"><div class="kpi-label">Average position</div><div class="kpi-value">11.36</div><span class="delta up">↑ 1.7 places</span></article></div>
+          <div class="grid equal section-space"><article class="card card-pad"><div class="card-head"><div><h2>Brand and non-brand traffic</h2><p>Clicks and share of organic search traffic</p></div></div><div class="funnel"><div class="funnel-row"><label>Brand</label><div class="funnel-bar"><span style="width:67%">907 clicks</span></div><b>67%</b><em>+6%</em></div><div class="funnel-row"><label>Non-brand</label><div class="funnel-bar"><span style="width:33%;background:linear-gradient(90deg,#1570ef,#62a1f5)">441 clicks</span></div><b>33%</b><em>+18%</em></div></div></article><article class="card card-pad"><div class="card-head"><div><h2>Queries near page one</h2><p>Commercial terms in positions 8 to 15</p></div><span class="badge blue">14 queries</span></div><div class="summary-number"><strong>23.8k</strong><span style="color:var(--blue)">monthly impressions</span></div><p style="color:var(--muted);font-size:11px;margin:12px 0 0">A 4% CTR at page-one positions could add approximately 420 qualified clicks per month.</p></article></div>
+          <article class="card table-card section-space"><div class="card-head"><div><h2>Search opportunity map</h2><p>Prioritised by intent, visibility and distance to page one</p></div><div class="filter-row"><select class="control"><option>All intent</option><option>Commercial</option><option>Informational</option></select><select class="control"><option>All positions</option><option>Positions 8–15</option><option>Positions 16–30</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Query</th><th>Intent</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th><th>Opportunity</th></tr></thead><tbody><tr><td><div class="query"><strong>baby gift set singapore</strong><small>Collection landing page</small></div></td><td><span class="badge green">Commercial</span></td><td>61</td><td>4,820</td><td>1.27%</td><td class="position near">9.8</td><td><button class="row-action" data-opportunity="seo">Optimise page</button></td></tr><tr><td><div class="query"><strong>newborn baby gift</strong><small>Gift guide / collection</small></div></td><td><span class="badge green">Commercial</span></td><td>48</td><td>5,640</td><td>0.85%</td><td class="position near">11.2</td><td><button class="row-action" data-opportunity="seo">Expand content</button></td></tr><tr><td><div class="query"><strong>personalised baby gifts</strong><small>Personalisation collection</small></div></td><td><span class="badge green">Commercial</span></td><td>36</td><td>3,910</td><td>0.92%</td><td class="position near">12.6</td><td><button class="row-action">Strengthen links</button></td></tr><tr><td><div class="query"><strong>bamboo baby clothes singapore</strong><small>Bamboo category</small></div></td><td><span class="badge blue">Category</span></td><td>25</td><td>2,780</td><td>0.90%</td><td class="position near">14.1</td><td><button class="row-action">Refresh copy</button></td></tr><tr><td><div class="query"><strong>raph and remy</strong><small>Home page</small></div></td><td><span class="badge grey">Brand</span></td><td>236</td><td>1,490</td><td>15.84%</td><td class="position win">1.2</td><td><span class="badge grey">Defend</span></td></tr></tbody></table></div></article>
+        </section>
+
+        <section class="page" id="page-health">
+          <div class="page-head"><div><div class="eyebrow">Data quality</div><h1>Data source status and measurement coverage</h1><p>Connector availability, refresh status, metric coverage and the validation required before client reporting begins.</p></div><span class="badge amber">Prototype | not connected</span></div>
+          <div class="grid equal"><div class="stack"><article class="card health-source"><div class="source-icon ga">GA</div><div><h3>Google Analytics 4</h3><p>Revenue, orders, users, onsite funnel and products</p></div><div class="health-meta"><b>Not connected</b><span>Planned source</span></div></article><article class="card health-source"><div class="source-icon ads">Ads</div><div><h3>Google Ads</h3><p>Spend, campaigns, keywords, assets and conversion value</p></div><div class="health-meta"><b>Customer ID required</b><span>Planned source</span></div></article><article class="card health-source"><div class="source-icon gsc">GSC</div><div><h3>Google Search Console</h3><p>Queries, pages, clicks, impressions, CTR and position</p></div><div class="health-meta"><b>Not connected</b><span>Planned source</span></div></article><article class="card health-source"><div class="source-icon store">Store</div><div><h3>Commerce platform</h3><p>Optional source for refunds, discounts, margin and inventory</p></div><div class="health-meta"><b>Phase 2</b><span>Recommended</span></div></article></div><article class="card card-pad"><div class="card-head"><div><h2>Metric readiness</h2><p>What the final dashboard can support</p></div></div><div class="schema-list"><div class="schema-row"><div><strong>Executive revenue reporting</strong><span>GA4 purchase revenue and transaction validation</span></div><span class="badge blue">Ready to map</span></div><div class="schema-row"><div><strong>Budget scaling model</strong><span>Ads spend + conversion value + impression share</span></div><span class="badge amber">Ads ID needed</span></div><div class="schema-row"><div><strong>Creative intelligence</strong><span>Asset-level reporting depends on campaign coverage</span></div><span class="badge blue">Ready to map</span></div><div class="schema-row"><div><strong>Product profitability</strong><span>Requires cost of goods or margin source</span></div><span class="badge grey">Phase 2</span></div><div class="schema-row"><div><strong>Organic opportunity scoring</strong><span>Search Console query and landing-page datasets</span></div><span class="badge blue">Ready to map</span></div></div></article></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="opportunityDrawer" aria-label="Opportunity detail" aria-hidden="true">
+    <div class="drawer-head"><div><span class="badge purple" id="drawerType">Opportunity</span><h2 id="drawerTitle">Opportunity detail</h2></div><button class="close" id="closeDrawer" aria-label="Close">×</button></div>
+    <div class="drawer-body">
+      <div class="drawer-section"><h3>Why this matters</h3><p id="drawerSummary" style="font-size:12px;color:var(--ink-2);margin:0"></p></div>
+      <div class="drawer-section"><h3>Evidence</h3><div class="evidence" id="drawerEvidence"></div></div>
+      <div class="drawer-section"><h3>Recommended action</h3><div class="steps" id="drawerSteps"></div></div>
+    </div>
+    <div class="drawer-foot"><button class="btn" id="dismissOpportunity">Mark reviewed</button><button class="btn primary" id="approveOpportunity">Approve next step</button></div>
+  </aside>
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+    const pageMeta = {
+      executive: 'Executive summary', opportunities: 'Opportunities & tests', paid: 'Acquisition performance',
+      creative: 'Creative performance', products: 'Website & product', organic: 'Organic search', health: 'Data quality'
+    };
+
+    const opportunities = {
+      pdp: { type:'Conversion test', title:'Test the mobile product-page content order', summary:'Mobile add-to-cart rate is lower than desktop across the highest-traffic product families. The test will measure whether placing delivery, personalisation and trust information beside the primary CTA improves purchase intent.', evidence:[['Mobile cart rate','6.1%'],['Desktop cart rate','8.5%'],['Monthly potential','+$8.2k']], steps:[['Document the control','Record the current mobile layout and baseline metrics by product family.'],['Create one structured variant','Move delivery, personalisation and trust content beside the primary CTA.'],['Run the test','Use add-to-cart rate as the primary metric and purchase conversion as the secondary metric.']] },
+      scale: { type:'Budget recommendation', title:'Increase high-intent search budget', summary:'Brand Search and Newborn Gift Sets maintain strong conversion efficiency while losing eligible impressions to budget. Budget changes should be applied in controlled increments and evaluated against client-approved guardrails.', evidence:[['Current ROAS','4.98x'],['Headroom','21%'],['Monthly potential','+$5.6k']], steps:[['Increase budget by 15%','Apply the first increase to Brand Search without changing targeting or creative.'],['Review after three conversion cycles','Compare marginal ROAS and cost per order with the approved thresholds.'],['Approve the next increment','Increase a further 10% only when efficiency remains within range.']] },
+      creative: { type:'Creative test', title:'Test three variants of the strongest gifting concept', summary:'The current gifting concept generates more qualified visits and a lower CPA than the account baseline. The next test should isolate the effect of the opening message and first visual frame.', evidence:[['CPA difference','-32%'],['Qualified visits','+41%'],['Creative ROAS','5.34x']], steps:[['Create three variants','Test delivery certainty, personalisation and recipient reaction as separate opening messages.'],['Keep other variables consistent','Use the same product, offer and target audience for each variant.'],['Select the next control','Use qualified visit rate as the primary metric and CPA as the commercial validation metric.']] },
+      seo: { type:'Traffic recommendation', title:'Improve commercial queries in positions 8 to 15', summary:'Fourteen high-intent gifting queries have meaningful impression volume and rank close to page one. The work should be organised by landing page to avoid overlapping content and internal competition.', evidence:[['Eligible queries','14'],['Impressions','23.8k'],['Click potential','+420/mo']], steps:[['Create a page-to-query map','Assign related commercial terms to the strongest existing landing page.'],['Improve page relevance','Update titles, copy, FAQs, internal links and product coverage.'],['Measure weekly','Track clicks, CTR and position without changing multiple page groups at once.']] },
+      adcopy: { type:'CTR test', title:'Test delivery certainty against personalisation in search ads', summary:'Non-brand search campaigns have high purchase intent but a lower CTR than the campaign benchmark. The test compares two specific customer value propositions.', evidence:[['Current CTR','4.1%'],['Campaign benchmark','4.8%'],['Potential','+0.7 pts']], steps:[['Create two message groups','Use delivery certainty in one group and personalisation in the other.'],['Hold keywords and landing pages constant','Avoid changing bids, audiences or final URLs during the test.'],['Evaluate after sufficient volume','Use CTR as the primary metric and conversion rate as the quality check.']] },
+      bundle: { type:'Order value test', title:'Test guided bundles for products viewed together', summary:'Personalised pyjamas and newborn gift sets are often viewed in the same journey but are rarely purchased together. A guided bundle can test whether convenience increases product attachment and order value.', evidence:[['Co-view rate','31%'],['Bundle uptake','6%'],['AOV potential','+$7']], steps:[['Define two bundle groups','Pair products by gifting occasion and age range.'],['Test presentation before discount','Compare a convenience-led bundle with the standard product experience.'],['Measure commercial quality','Track attachment rate, average order value and gross margin.']] },
+      stickycart: { type:'Conversion test', title:'Test a persistent mobile add-to-cart control', summary:'The primary add-to-cart control is below the fold on common device sizes and long personalised product pages. A persistent control may reduce navigation effort and increase cart actions.', evidence:[['Affected traffic','68% mobile'],['Current cart rate','6.1%'],['Potential','+0.2 pts CVR']], steps:[['Build a lightweight control','Keep product options and error states clear on small screens.'],['Limit the test scope','Start with the top three product families by mobile traffic.'],['Evaluate the full funnel','Use purchase conversion as the primary metric and cart rate as the diagnostic metric.']] },
+      tracking: { type:'Measurement issue', title:'Resolve checkout attribution loss', summary:'A material share of purchases loses the original session source after the payment redirect. The issue reduces confidence in channel-level revenue and ROAS reporting.', evidence:[['Affected purchases','4.6%'],['Recorded source','Unassigned'],['Confidence','High']], steps:[['Review referral exclusions','Confirm payment gateway and cross-domain settings.'],['Validate attribution persistence','Complete test purchases from tagged campaign sessions.'],['Reconcile for seven days','Compare source totals before and after the change.']] }
+    };
+
+    const navButtons = [...document.querySelectorAll('.nav button[data-page]')];
+    const pages = [...document.querySelectorAll('.page')];
+    function showPage(id) {
+      pages.forEach(p => p.classList.toggle('active', p.id === `page-${id}`));
+      navButtons.forEach(b => b.classList.toggle('active', b.dataset.page === id));
+      document.getElementById('crumbTitle').textContent = pageMeta[id];
+      window.scrollTo({top:0,behavior:'smooth'});
+      setTimeout(drawAllCharts, 80);
+    }
+    navButtons.forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
+    document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => showPage(b.dataset.nav)));
+
+    document.getElementById('compareToggle').addEventListener('change', e => document.body.classList.toggle('hide-comparison', !e.target.checked));
+    document.getElementById('rangeSelect').addEventListener('change', e => {
+      const days = Number(e.target.value); const factor = {7:.27,14:.53,28:1,90:3.08}[days];
+      document.querySelectorAll('[data-base]').forEach(el => {
+        const value = Number(el.dataset.base) * factor; const fmt = el.dataset.format;
+        if (fmt === 'currency') el.textContent = value.toLocaleString('en-SG',{style:'currency',currency:'SGD',maximumFractionDigits:0});
+        if (fmt === 'currency2') el.textContent = (Number(el.dataset.base) * (days === 90 ? 1.02 : days === 7 ? .98 : 1)).toLocaleString('en-SG',{style:'currency',currency:'SGD',minimumFractionDigits:2,maximumFractionDigits:2});
+        if (fmt === 'number') el.textContent = Math.round(value).toLocaleString('en-SG');
+      });
+      drawAllCharts(); toast(`Date range updated to ${e.target.selectedOptions[0].text}`);
+    });
+
+    const drawer = document.getElementById('opportunityDrawer');
+    const backdrop = document.getElementById('drawerBackdrop');
+    function openOpportunity(id) {
+      const item = opportunities[id]; if (!item) return;
+      document.getElementById('drawerType').textContent = item.type;
+      document.getElementById('drawerTitle').textContent = item.title;
+      document.getElementById('drawerSummary').textContent = item.summary;
+      document.getElementById('drawerEvidence').innerHTML = item.evidence.map(([a,b]) => `<div><small>${a}</small><b>${b}</b></div>`).join('');
+      document.getElementById('drawerSteps').innerHTML = item.steps.map(([a,b]) => `<div class="step"><div><strong>${a}</strong><span>${b}</span></div></div>`).join('');
+      drawer.classList.add('open'); backdrop.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+    }
+    function closeDrawer() { drawer.classList.remove('open'); backdrop.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+    document.addEventListener('click', e => { const target = e.target.closest('[data-opportunity]'); if (target) openOpportunity(target.dataset.opportunity); });
+    document.getElementById('closeDrawer').addEventListener('click', closeDrawer); backdrop.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+    document.getElementById('approveOpportunity').addEventListener('click', () => { closeDrawer(); toast('Next step approved and added to the action plan'); });
+    document.getElementById('dismissOpportunity').addEventListener('click', () => { closeDrawer(); toast('Opportunity marked as reviewed'); });
+
+    let activeObjective = 'all';
+    function filterOpportunities() {
+      const q = document.getElementById('oppSearch').value.toLowerCase();
+      document.querySelectorAll('#oppBoard .opp-card').forEach(card => {
+        const matchesSearch = card.dataset.search.includes(q);
+        const matchesObjective = activeObjective === 'all' || card.dataset.objective === activeObjective;
+        card.style.display = matchesSearch && matchesObjective ? '' : 'none';
+      });
+    }
+    document.getElementById('oppSearch').addEventListener('input', filterOpportunities);
+    document.querySelectorAll('#objectiveTabs button').forEach(button => button.addEventListener('click', () => {
+      activeObjective = button.dataset.objective;
+      document.querySelectorAll('#objectiveTabs button').forEach(item => item.classList.toggle('active', item === button));
+      filterOpportunities();
+    }));
+
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(location.href); toast('Prototype link copied'); }
+      catch { toast('Share link is ready'); }
+    });
+    document.getElementById('exportBtn').addEventListener('click', () => toast('Client PDF export would be generated here'));
+    document.querySelectorAll('.row-action:not([data-opportunity])').forEach(b => b.addEventListener('click', () => toast(`${b.textContent.trim()} noted for the action plan`)));
+
+    let toastTimer;
+    function toast(message) { const el = document.getElementById('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2300); }
+
+    const revenue = [1860,2510,2080,2730,2210,3490,3200,1880,2470,2950,3320,2810,3780,4010,2650,3040,2830,3560,4240,3950,4700,3010,3380,3920,4510,4180,4960,4320];
+    const previous = [1720,2210,1990,2480,2190,2900,2780,2010,2320,2580,2700,2530,3120,3440,2410,2790,2640,3020,3510,3290,3910,2860,3020,3360,3720,3580,4030,3810];
+    const orders = revenue.map(v => Math.round(v/134));
+    const previousOrders = previous.map(v => Math.round(v/129));
+    let chartMode = 'revenue';
+    document.querySelectorAll('[data-chart]').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('[data-chart]').forEach(x => x.classList.toggle('active',x===b)); chartMode=b.dataset.chart; drawRevenueChart(); }));
+
+    function setupCanvas(canvas) { const rect = canvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; canvas.width = Math.max(1,rect.width*dpr); canvas.height = Math.max(1,rect.height*dpr); const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:rect.width,h:rect.height}; }
+    function smoothLine(ctx, pts) { ctx.beginPath(); pts.forEach((p,i) => { if(i===0)ctx.moveTo(p.x,p.y); else { const prev=pts[i-1]; const cx=(prev.x+p.x)/2; ctx.bezierCurveTo(cx,prev.y,cx,p.y,p.x,p.y); } }); }
+    function drawRevenueChart() {
+      const canvas=document.getElementById('revenueChart'); if(!canvas || canvas.offsetParent===null)return;
+      const {ctx,w,h}=setupCanvas(canvas); const pad={l:42,r:12,t:14,b:28}; const current=chartMode==='revenue'?revenue:orders; const prior=chartMode==='revenue'?previous:previousOrders; const max=Math.max(...current,...prior)*1.12;
+      ctx.clearRect(0,0,w,h); ctx.font='10px Inter, sans-serif'; ctx.fillStyle='#99958c'; ctx.strokeStyle='#ece9e3'; ctx.lineWidth=1;
+      for(let i=0;i<5;i++){const y=pad.t+(h-pad.t-pad.b)*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();const val=max*(1-i/4);ctx.fillText(chartMode==='revenue'?'$'+Math.round(val/1000)+'k':Math.round(val),4,y+3);}
+      const points=(arr)=>arr.map((v,i)=>({x:pad.l+i*(w-pad.l-pad.r)/(arr.length-1),y:pad.t+(max-v)*(h-pad.t-pad.b)/max}));
+      const p1=points(prior),p2=points(current);
+      ctx.setLineDash([5,5]);ctx.strokeStyle='#b9b4aa';ctx.lineWidth=1.5;smoothLine(ctx,p1);ctx.stroke();ctx.setLineDash([]);
+      const grad=ctx.createLinearGradient(0,pad.t,0,h-pad.b);grad.addColorStop(0,'rgba(255,79,41,.20)');grad.addColorStop(1,'rgba(255,79,41,0)');smoothLine(ctx,p2);ctx.lineTo(p2[p2.length-1].x,h-pad.b);ctx.lineTo(p2[0].x,h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      smoothLine(ctx,p2);ctx.strokeStyle='#ff4f29';ctx.lineWidth=2.4;ctx.stroke();
+      ctx.fillStyle='#99958c';['Jul 11','Jul 18','Jul 25','Aug 1','Aug 7'].forEach((d,i)=>ctx.fillText(d,pad.l+i*(w-pad.l-pad.r)/4-10,h-8));
+    }
+    function drawCreativeChart(){const canvas=document.getElementById('creativeChart');if(!canvas||canvas.offsetParent===null)return;const {ctx,w,h}=setupCanvas(canvas);const data=[5.34,4.81,4.22,3.47],labels=['Gift-ready','Bamboo soft','Personalised','Bundle value'];ctx.clearRect(0,0,w,h);const pad={l:90,r:28,t:8,b:12};data.forEach((v,i)=>{const y=pad.t+i*48;ctx.fillStyle='#716e67';ctx.font='10px Inter, sans-serif';ctx.fillText(labels[i],2,y+16);ctx.fillStyle='#ece9e3';ctx.fillRect(pad.l,y,w-pad.l-pad.r,22);const g=ctx.createLinearGradient(pad.l,0,w-pad.r,0);g.addColorStop(0,'#ff4f29');g.addColorStop(1,'#ff8b6e');ctx.fillStyle=g;ctx.fillRect(pad.l,y,(w-pad.l-pad.r)*v/6,22);ctx.fillStyle='#11110f';ctx.font='700 10px Inter, sans-serif';ctx.fillText(v.toFixed(2)+'×',w-25,y+15);});}
+    function drawAllCharts(){drawRevenueChart();drawCreativeChart();}
+    window.addEventListener('resize',drawAllCharts); new ResizeObserver(drawAllCharts).observe(document.querySelector('.main')); drawAllCharts();
+  </script>
+</body>
+</html>

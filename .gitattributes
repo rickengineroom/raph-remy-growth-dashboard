@@ -1,0 +1,10 @@
+# Preserve the approved prototype and its backup byte-for-byte.
+raph-remy-growth-dashboard-prototype.html -text
+raph-remy-dashboard-prototype-backup.html -text
+
+# Binary project references.
+*.pdf binary
+
+# Keep project documentation consistent across platforms.
+*.md text eol=lf
+

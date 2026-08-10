@@ -48,7 +48,7 @@ Record reusable identifiers and decisions here. This file is safe for non-secret
 
 | Source / layer | Destination or identity | Status |
 | --- | --- | --- |
-| Google Ads | `raw_google_ads` | Daily BigQuery transfer `Raph Remy Google Ads Daily`; 30-day refresh window; new Google Ads and PMax tables included |
+| Google Ads | `raw_google_ads` | Daily BigQuery transfer `Raph Remy Google Ads Daily`; first run succeeded 10 Aug 2026; 30-day backfill queued; new Google Ads and PMax tables included |
 | Google Ads transfer identity | `bq-google-ads-transfer@rr-performance-dashboard.iam.gserviceaccount.com` | Keyless service account; read-only Google Ads access; BigQuery Data Owner on `raw_google_ads` only |
 | Google Search Console | `searchconsole_raph_remy` | Bulk export enabled for `sc-domain:raphandremy.com`; first export may take up to 48 hours |
 | Meta Ads raw layer | `raw_meta_ads` | Dataset created; source connector pending |
